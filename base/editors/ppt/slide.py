@@ -194,11 +194,11 @@ class SlideEditor:
                             ".//{http://schemas.openxmlformats.org/drawingml/2006/main}t"
                         )
                         if text_box:
-                            texts.append(text_box.text)
-                            text_length += len(text_box.text)
+                            texts.append(text_box.text + "\r")
+                            text_length += len(text_box.text) + 1
                     elif validate_element(paragraph.find(".//{http://schemas.openxmlformats.org/drawingml/2006/main}endParaRPr")):
-                        texts.append("\n\n")
-                        text_length += 2
+                        texts.append("\r")
+                        text_length += 1
 
         shape_metadata = shape.find(
             ".//{http://schemas.openxmlformats.org/presentationml/2006/main}nvSpPr"
@@ -223,14 +223,13 @@ class SlideEditor:
                             shape_creation_id = shape_creation_id_comp.get("id")[1:-1]
                             break
 
-                resultant_text = "".join(texts)
                 return ShapeData(
                     shape_id=int(shape_id.get("id")),
                     shape_creation_id=shape_creation_id,
                     text="\n".join(texts),
                     name=shape_id.get("name"),
                     text_area_length=str(text_length),
-                    text_area_content_hash=str(ppt_context_hash(resultant_text + "\r"))
+                    text_area_content_hash=str(ppt_context_hash("".join(texts)))
                 )
         return None
 

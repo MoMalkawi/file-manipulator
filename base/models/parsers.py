@@ -1,4 +1,5 @@
 from abc import ABC
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from base.models import BaseModel
@@ -75,3 +76,32 @@ class PPTCommentData(XMLFileData):
     # slide_creation_id: str  # cId  (IMPORTANT)  val="" in slideX.xml (tag=p14:creationId)
     # shape_id: int = 3  # in slideX.xml (it wraps the shape in the text (unique)) <p:cNvPr id="3" name="Subtitle 2">
     # shape_creation_id: str  # in slideX.xml (IT WRAPS THE TEXT BOX (ITS UNIQUE to the text box)) <a16:creationId xmlns:a16="http://schemas.microsoft.com/office/drawing/2014/main" id="{257E15C3-747C-13D4-A229-AF3980E40962}"/>
+
+
+class DocCommentData(XMLFileData):
+    # w:comment
+    initials: str = "DM"  # w:initials
+    creation_date: str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # w:date
+    comment_id: str = "0"  # w:id
+    author: str = "Document Manipulator"  # w:author
+    text: str  #  w:t
+
+    def to_xml(self, skeleton):
+        from base.namespaces.docx import DocUtils
+
+        comment = DocUtils.create_element(
+            "comment",
+            parent=skeleton,
+            w__initials=self.initials,
+            w__date=self.creation_date,
+            w__id=self.comment_id,
+            w__author=self.author
+        )
+
+        p = DocUtils.create_element("p", parent=comment)
+
+        r = DocUtils.create_element("r", parent=p)
+
+        DocUtils.create_element("t", parent=r, text=self.text)
+
+        return comment

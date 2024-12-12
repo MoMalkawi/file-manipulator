@@ -34,8 +34,6 @@ class DocPageHighlighter(ParsedArchiveFile):
                     continue
 
                 if text_parts[current_part_index] in text_content:
-                    print(f"PARTIAL TEXT FOUND: {text_parts[current_part_index]}")
-
                     if current_part_index == 0:
                         comment_range_start = etree.Element("{%s}commentRangeStart" % namespaces["w"], id=comment_id)
                         run.addprevious(comment_range_start)

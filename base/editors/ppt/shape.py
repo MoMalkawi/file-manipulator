@@ -3,10 +3,10 @@ import xml.etree.ElementTree as et
 
 from xml.etree.ElementTree import Element
 
-from app.core.tools.ppt_manipulator.editors.archive import SelectiveArchiveEditor
-from app.core.tools.ppt_manipulator.models.parsers import SlideData, ShapeData, PPTCommentData
-from app.core.tools.ppt_manipulator.parsers.ppt.comments import PPTSlideComments
-from app.core.tools.ppt_manipulator.utils import validate_element, ppt_context_hash, get_highlighted_text_coords
+from base.editors.archive import SelectiveArchiveEditor
+from base.models.parsers import SlideData, ShapeData, PPTCommentData
+from base.parsers.ppt.comments import PPTSlideComments
+from base.utils import validate_element, ppt_context_hash, get_highlighted_text_coords
 
 
 class ShapeEditor:

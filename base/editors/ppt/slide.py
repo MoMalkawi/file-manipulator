@@ -1,12 +1,12 @@
 import logging
 import xml.etree.ElementTree as et
 
-from app.core.tools.ppt_manipulator.editors.archive import SelectiveArchiveEditor
-from app.core.tools.ppt_manipulator.editors.ppt.shape import ShapeEditor
-from app.core.tools.ppt_manipulator.models.parsers import (
+from base.editors.archive import SelectiveArchiveEditor
+from base.editors.ppt.shape import ShapeEditor
+from base.models.parsers import (
     SlideData, PresentationData,
 )
-from app.core.tools.ppt_manipulator.utils import (
+from base.utils import (
     validate_element,
 )
 

@@ -1,9 +1,9 @@
 import xml.etree.ElementTree as et
 from uuid import uuid4
 
-from app.core.tools.ppt_manipulator.models.parsers import PPTCommentData
-from app.core.tools.ppt_manipulator.parsers.file import ArchiveFile, ParsedArchiveFile
-from app.core.tools.ppt_manipulator.utils import generate_guid
+from base.models.parsers import PPTCommentData
+from base.parsers.file import ArchiveFile, ParsedArchiveFile
+from base.utils import generate_guid
 from app.schemas.base import BaseModel
 
 

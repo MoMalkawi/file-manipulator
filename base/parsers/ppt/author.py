@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as et
 
-from app.core.tools.ppt_manipulator.models.parsers import AuthorData
-from app.core.tools.ppt_manipulator.parsers.file import ArchiveFile, ParsedArchiveFile
+from base.models.parsers import AuthorData
+from base.parsers.file import ArchiveFile, ParsedArchiveFile
 
 
 class PPTAuthor(ParsedArchiveFile):

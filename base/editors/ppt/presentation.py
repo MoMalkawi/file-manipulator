@@ -1,7 +1,7 @@
-from app.core.tools.ppt_manipulator.editors.archive import SelectiveArchiveEditor
-from app.core.tools.ppt_manipulator.models.parsers import PresentationData
-from app.core.tools.ppt_manipulator.parsers.ppt.author import AuthorData, PPTAuthor
-from app.core.tools.ppt_manipulator.editors.ppt.slide import SlideEditor
+from base.editors.archive import SelectiveArchiveEditor
+from base.models.parsers import PresentationData
+from base.parsers.ppt.author import AuthorData, PPTAuthor
+from base.editors.ppt.slide import SlideEditor
 
 
 class PresentationEditor:

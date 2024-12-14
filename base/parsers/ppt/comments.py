@@ -1,9 +1,10 @@
 import xml.etree.ElementTree as et
 from uuid import uuid4
 
-from base.models.parsers import PPTCommentData
-from base.parsers.file import ArchiveFile, ParsedArchiveFile
-from base.utils import generate_guid
+from app.core.tools.ppt_manipulator.models.parsers import PPTCommentData
+from app.core.tools.ppt_manipulator.parsers.file import ArchiveFile, ParsedArchiveFile
+from app.core.tools.ppt_manipulator.utils import generate_guid
+from app.schemas.base import BaseModel
 
 
 class PPTSlideComments(ParsedArchiveFile):
@@ -19,7 +20,7 @@ class PPTSlideComments(ParsedArchiveFile):
     def __init__(self, file: ArchiveFile):
         super().__init__(file)
 
-    def parse(self) -> PPTCommentData:
+    def parse(self) -> BaseModel:
         """No need to parse this, as we currently don't need to read comments, only insert them ;)"""
 
     def inject(self, archiver, data: PPTCommentData):
@@ -58,7 +59,7 @@ class PPTSlideComments(ParsedArchiveFile):
 
     def _add_comments_relationship(self, archiver, data) -> int:
         slide_rel_file_name = (
-            f"ppt/slides/_rels/slide{data.slide.slide_index + 1}.xml.rels"
+            f"ppt/slides/_rels/slide{data.shape_data.slide_data.slide_index + 1}.xml.rels"
         )
         slide_rel = archiver.get_file(slide_rel_file_name)
         slide_rel_xml = et.fromstring(slide_rel.data)
@@ -112,10 +113,10 @@ class PPTSlideComments(ParsedArchiveFile):
         <pc:docMk
             xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command"/>
             <pc:sldMk
-                xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command" cId="{data.slide.slide_creation_id}" sldId="{data.slide.slide_id}"/>
-                <ac:spMk id="{data.shape.shape_id}" creationId="{{{data.shape.shape_creation_id}}}"/>
+                xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command" cId="{data.shape_data.slide_data.slide_creation_id}" sldId="{data.shape_data.slide_data.slide_id}"/>
+                <ac:spMk id="{data.shape_data.id}" creationId="{{{data.shape_data.creation_id}}}"/>
                 <ac:txMk cp="{data.highlighted_text_start_index}" len="{data.highlighted_text_length}">
-                    <ac:context len="{data.shape.text_area_length}" hash="{data.shape.text_area_content_hash}"/>
+                    <ac:context len="{data.shape_data.text_area_length}" hash="{data.shape_data.text_area_content_hash}"/>
                 </ac:txMk>
             </ac:txMkLst>
             <p188:pos x="0" y="0"/>

@@ -1,9 +1,7 @@
-import xml.etree.ElementTree as et
-
-from base.editors.archive import SelectiveArchiveEditor
-from base.models.parsers import AuthorData
-from base.parsers.ppt.author import PPTAuthor
-from base.utils import validate_element
+from app.core.tools.ppt_manipulator.editors.archive import SelectiveArchiveEditor
+from app.core.tools.ppt_manipulator.models.parsers import PresentationData
+from app.core.tools.ppt_manipulator.parsers.ppt.author import AuthorData, PPTAuthor
+from app.core.tools.ppt_manipulator.editors.ppt.slide import SlideEditor
 
 
 class PresentationEditor:
@@ -16,63 +14,51 @@ class PresentationEditor:
     Uses the ArchiveEditor to edit a PowerPoint Presentation file.
     """
 
-    def __init__(self, presentation: str | bytes):
+    def __init__(self, presentation: str | bytes, custom_author: AuthorData | None = None):
         """
         :param presentation: The presentation file path or bytes to edit.
         """
         self._archive: SelectiveArchiveEditor = SelectiveArchiveEditor(presentation)
-        self._author: AuthorData = self._load_author()
+        self._data: PresentationData = self._load_data(custom_author=custom_author)
+
+    def _load_data(self, custom_author: AuthorData | None = None) -> PresentationData:
+        return PresentationData(
+            slides_count=self.load_slide_count(),
+            author=self._load_author(custom_author=custom_author),
+        )
 
     def get_slide(self, slide_index: int):
-        from base.editors.ppt.slide import SlideEditor
+        return SlideEditor(slide_index, self.data, self._archive)
 
-        return SlideEditor(self, slide_index, self.get_slide_id(slide_index))
-
-    def get_slide_count(self):
+    def load_slide_count(self):
         return len(self._archive.get_filenames_in_dir("ppt/slides"))
 
-    def get_slide_id(self, slide_index: int) -> str:
-        presentation_file = self._archive.get_file("ppt/presentation.xml")
-        presentation_xml = et.fromstring(presentation_file.data)
-        slides_list_root = presentation_xml.find(
-            ".//{http://schemas.openxmlformats.org/presentationml/2006/main}sldIdLst"
+    def _load_author(self, custom_author: AuthorData | None = None) -> AuthorData:
+        author_data = custom_author or AuthorData(
+            id="A123B456-C789-0D12-E345-F67890123456",
+            name="Document Checker",
+            initials="DC",
+            user_id="S::documentchecker@noemail.com::12345678-90ab-cdef-1234-567890abcdef",
+            provider_id="AD",
         )
-        if validate_element(slides_list_root):
-            slides_ids = slides_list_root.findall(
-                ".//{http://schemas.openxmlformats.org/presentationml/2006/main}sldId"
-            )
-            if slides_ids and len(slides_ids) > slide_index:
-                return slides_ids[slide_index].get("id")
-        raise IndexError(f"Slide index {slide_index} is out of range.")
 
-    def _load_author(self) -> AuthorData:
         author = PPTAuthor(
-            "A123B456-C789-0D12-E345-F67890123456",
+            author_data.id,
             self._archive.get_file("ppt/authors.xml"),
         )
         if not author.data:
             author.inject(
                 self._archive,
-                AuthorData(
-                    id="A123B456-C789-0D12-E345-F67890123456",
-                    name="Document Checker",
-                    initials="DC",
-                    user_id="S::documentchecker@noemail.com::12345678-90ab-cdef-1234-567890abcdef",
-                    provider_id="AD",
-                ),
+                author_data,
             )
         return author.data
 
-    @property
-    def author_id(self):
-        return self._author.id
-
-    @property
-    def archiver(self):
-        return self._archive
-
     def export(self, path: str | None = None) -> bytes:
         return self._archive.export(path)
+
+    @property
+    def data(self):
+        return self._data
 
     def __enter__(self):
         return self

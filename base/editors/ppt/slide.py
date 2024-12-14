@@ -1,10 +1,14 @@
 import logging
 import xml.etree.ElementTree as et
 
-from base.editors.ppt.presentation import PresentationEditor
-from base.models.parsers import SlideData, PPTCommentData, ShapeData
-from base.parsers.ppt.comments import PPTSlideComments
-from base.utils import get_highlighted_text_coords, validate_element, ppt_context_hash
+from app.core.tools.ppt_manipulator.editors.archive import SelectiveArchiveEditor
+from app.core.tools.ppt_manipulator.editors.ppt.shape import ShapeEditor
+from app.core.tools.ppt_manipulator.models.parsers import (
+    SlideData, PresentationData,
+)
+from app.core.tools.ppt_manipulator.utils import (
+    validate_element,
+)
 
 
 class SlideEditor:
@@ -18,101 +22,119 @@ class SlideEditor:
     """
 
     def __init__(
-        self, presentation_editor: PresentationEditor, slide_index: int, slide_id: str
+        self, index: int, presentation_data: PresentationData, archiver: SelectiveArchiveEditor
     ):
-        self._presentation_editor = presentation_editor
-        self._index = slide_index
-        self._id = slide_id
-        self._data: SlideData | None = None
+        self._archiver = archiver
+        self._index = index
+        self._presentation_data: PresentationData = presentation_data
+        self._data: SlideData = self._load_data()
+
+    def _load_data(self) -> SlideData:
+        return SlideData(
+            slide_index=self._index,
+            slide_id=self._extract_slide_id(self._index),
+            comments_file_path=self._extract_comment_file_name(),
+            slide_creation_id=self._extract_slide_creation_id(),
+            presentation_data=self._presentation_data,
+        )
 
     def search_and_comment(
         self,
         text: str,
         text_to_highlight: str,
-        shape_id: int | None = None,
         locale: str = "en-US",
-    ):
+    ) -> "SlideEditor":
         """
-        Looks for the text to highlight within the slide and adds a comment to it.
-        :param shape_id: id of the shape to constrict the search in.
+        Looks for the text_to_highlight within the shapes' text and prints the details
+        of its first occurrence, including which shapes it spans and the indexes within those shapes.
         """
-        payload = self._construct_comment_payload(
-            shape_id=shape_id,
-            text=text,
-            text_to_highlight=text_to_highlight,
-            locale=locale,
-        )
-
-        if not payload:
-            logging.info("SlideEditor: No shape found for the given text, skipping comment.")
+        text_to_highlight = text_to_highlight.lower()
+        shapes: list[ShapeEditor] = self.get_shapes()
+        all_text = "".join([shape.data.text.lower() for shape in shapes])
+        all_text = all_text.replace("\n", " ")
+        start_idx = all_text.find(text_to_highlight)
+        if start_idx == -1:
+            logging.error(f"SlideEditor: '{text_to_highlight}' not found in any shape.")
             return self
 
-        self._add_comment(payload)
+        end_idx = start_idx + len(text_to_highlight)
+
+        cumulative_length = 0
+        remaining_start = start_idx
+        remaining_end = end_idx
+
+        results = []
+
+        for i, shape in enumerate(shapes):
+            shape_text = shape.data.text
+            shape_length = len(shape_text)
+
+            shape_global_start = cumulative_length
+            shape_global_end = cumulative_length + shape_length
+
+            if shape_global_end > remaining_start and shape_global_start < remaining_end:
+                local_start = max(0, remaining_start - shape_global_start)
+                local_end = min(shape_length, remaining_end - shape_global_start)
+
+                highlighted_substring = shape_text[local_start:local_end]
+
+                results.append({
+                    "shape_index": i,
+                    "shape_text": shape_text,
+                    "highlighted_substring": highlighted_substring,
+                    "local_start": local_start,
+                    "length": local_end - local_start
+                })
+
+            cumulative_length += shape_length
+
+            if cumulative_length >= end_idx:
+                break
+
+        for r in results:
+            curr_shape: ShapeEditor = shapes[r["shape_index"]]
+            curr_shape.comment(text, r["local_start"], r["length"], locale)
+
         return self
 
-    def comment(
-        self,
-        text: str,
-        shape_id: int,  # index of the shape in the slide
-        start_index: int,  # start index of the text to highlight
-        length: int,  # length of the text to highlight
-        locale: str = "en-US",
-    ):
-        """
-        Adds a comment to the slide within given location constraints.
-        :param start_index: start index of the text to highlight within the shape.
-        :param length: length of the text to highlight within the shape.
-        """
-        payload = self._construct_comment_payload(
-            shape_id=shape_id,
-            start_index=start_index,
-            length=length,
-            text=text,
-            locale=locale,
+    def get_shape(self, shape_id: str) -> ShapeEditor:
+        return ShapeEditor(shape_id, self._data, self._archiver)
+
+    def get_shapes(self) -> list[ShapeEditor]:
+        shapes_ids = self._extract_shape_ids()
+        return [self.get_shape(shape_id.get("id")) for shape_id in shapes_ids]
+
+    def _extract_shape_ids(self) -> list[et.Element]:
+        result = []
+        slide = self._archiver.get_file(
+            f"ppt/slides/slide{self._index + 1}.xml"
         )
-
-        if not payload:
-            logging.info("SlideEditor: Couldn't locate the shape, skipping comment.")
-            return self
-
-        self._add_comment(payload)
-        return self
-
-    def _add_comment(self, comment: PPTCommentData):
-        comments_file = (
-            self._presentation_editor.archiver.get_file(
-                f"ppt/comments/{self.data.comments_file_path}"
+        slide_xml = et.fromstring(slide.data)
+        creation_slide = slide_xml.find(
+            ".//{http://schemas.openxmlformats.org/presentationml/2006/main}cSld"
+        )
+        if validate_element(creation_slide):
+            shape_tree = creation_slide.find(
+                ".//{http://schemas.openxmlformats.org/presentationml/2006/main}spTree"
             )
-            if self.data.comments_file_path
-            else None
-        )
-        results_comment_file_name = PPTSlideComments(comments_file).inject(
-            self._presentation_editor.archiver, comment
-        )
-        self._data.comments_file_path = results_comment_file_name[results_comment_file_name.rindex("/") + 1:]
+            if validate_element(shape_tree):
+                shapes = shape_tree.findall(
+                    ".//{http://schemas.openxmlformats.org/presentationml/2006/main}sp"
+                )
+                for shape in shapes:
+                    shape_metadata = shape.find(
+                        ".//{http://schemas.openxmlformats.org/presentationml/2006/main}nvSpPr"
+                    )
+                    if validate_element(shape_metadata):
+                        shape_id = shape_metadata.find(
+                            ".//{http://schemas.openxmlformats.org/presentationml/2006/main}cNvPr"
+                        )
+                        if validate_element(shape_id):
+                            result.append(shape_id)
+        return result
 
-    def _construct_comment_payload(self, **kwargs):
-        shape = self.data.get_shape(
-            shape_id=kwargs.get("shape_id"),
-            search_string=kwargs.get("text_to_highlight"),
-            search_case_sensitive=False,
-        )
-        if not shape:
-            return None
-        text_to_highlight = kwargs.get("text_to_highlight")
-        start_index, length = get_highlighted_text_coords(text_to_highlight, shape.text)
-        return PPTCommentData(
-            author_id=self._presentation_editor.author_id,
-            slide=self.data,
-            shape=shape,
-            highlighted_text_start_index=kwargs.get("start_index") or start_index,
-            highlighted_text_length=kwargs.get("length") or length,
-            text=kwargs.get("text"),
-            locale=kwargs.get("locale"),
-        )
-
-    def get_slide_comments(self):
-        slide_rel = self._presentation_editor.archiver.get_file(
+    def _extract_comment_file_name(self) -> str | None:
+        slide_rel = self._archiver.get_file(
             f"ppt/slides/_rels/slide{self._index + 1}.xml.rels"
         )
         rel_xml = et.fromstring(slide_rel.data)
@@ -128,8 +150,8 @@ class SlideEditor:
             None,
         )
 
-    def get_slide_creation_date(self):
-        slide = self._presentation_editor.archiver.get_file(
+    def _extract_slide_creation_id(self):
+        slide = self._archiver.get_file(
             f"ppt/slides/slide{self._index + 1}.xml"
         )
         external_list = et.fromstring(slide.data).findall(
@@ -147,100 +169,20 @@ class SlideEditor:
                     return next((root.get("val") for root in slide_root), None)
         return None
 
-    def get_slide_shapes(self) -> list[ShapeData]:
-        result = []
-        slide = self._presentation_editor.archiver.get_file(
-            f"ppt/slides/slide{self._index + 1}.xml"
+    def _extract_slide_id(self, slide_index: int) -> str:
+        presentation_file = self._archiver.get_file("ppt/presentation.xml")
+        presentation_xml = et.fromstring(presentation_file.data)
+        slides_list_root = presentation_xml.find(
+            ".//{http://schemas.openxmlformats.org/presentationml/2006/main}sldIdLst"
         )
-        slide_xml = et.fromstring(slide.data)
-        creation_slide = slide_xml.find(
-            ".//{http://schemas.openxmlformats.org/presentationml/2006/main}cSld"
-        )
-        if validate_element(creation_slide):
-            shape_tree = creation_slide.find(
-                ".//{http://schemas.openxmlformats.org/presentationml/2006/main}spTree"
+        if validate_element(slides_list_root):
+            slides_ids = slides_list_root.findall(
+                ".//{http://schemas.openxmlformats.org/presentationml/2006/main}sldId"
             )
-            if validate_element(shape_tree):
-                shapes = shape_tree.findall(
-                    ".//{http://schemas.openxmlformats.org/presentationml/2006/main}sp"
-                )
-                for shape in shapes:
-                    shape_data = self._extract_shape_data(shape)
-                    if shape_data:
-                        result.append(shape_data)
-        return result
-
-    @classmethod
-    def _extract_shape_data(
-        cls, shape: et.Element
-    ) -> ShapeData | None:  # TODO: refactor later.
-        texts = []
-        text_length = 0
-        shape_creation_id = ""
-        body = shape.find(
-            ".//{http://schemas.openxmlformats.org/presentationml/2006/main}txBody"
-        )
-        if validate_element(body):
-            paragraphs = body.findall(
-                ".//{http://schemas.openxmlformats.org/drawingml/2006/main}p"
-            )
-            for paragraph in paragraphs:
-                if validate_element(paragraph):
-                    run = paragraph.find(
-                        ".//{http://schemas.openxmlformats.org/drawingml/2006/main}r"
-                    )
-                    if validate_element(run):
-                        text_box = run.find(
-                            ".//{http://schemas.openxmlformats.org/drawingml/2006/main}t"
-                        )
-                        if text_box:
-                            texts.append(text_box.text + "\r")
-                            text_length += len(text_box.text) + 1
-                    elif validate_element(paragraph.find(".//{http://schemas.openxmlformats.org/drawingml/2006/main}endParaRPr")):
-                        texts.append("\r")
-                        text_length += 1
-
-        shape_metadata = shape.find(
-            ".//{http://schemas.openxmlformats.org/presentationml/2006/main}nvSpPr"
-        )
-        if validate_element(shape_metadata):
-            shape_id = shape_metadata.find(
-                ".//{http://schemas.openxmlformats.org/presentationml/2006/main}cNvPr"
-            )
-            if validate_element(shape_id):
-                shape_ext = shape_metadata.find(
-                    ".//{http://schemas.openxmlformats.org/drawingml/2006/main}extLst"
-                )
-                if validate_element(shape_ext):
-                    ext_list = shape_ext.findall(
-                        ".//{http://schemas.openxmlformats.org/drawingml/2006/main}ext"
-                    )
-                    for ext in ext_list:
-                        shape_creation_id_comp = ext.find(
-                            ".//{http://schemas.microsoft.com/office/drawing/2014/main}creationId"
-                        )
-                        if validate_element(shape_creation_id_comp):
-                            shape_creation_id = shape_creation_id_comp.get("id")[1:-1]
-                            break
-
-                return ShapeData(
-                    shape_id=int(shape_id.get("id")),
-                    shape_creation_id=shape_creation_id,
-                    text="\n".join(texts),
-                    name=shape_id.get("name"),
-                    text_area_length=str(text_length),
-                    text_area_content_hash=str(ppt_context_hash("".join(texts)))
-                )
-        return None
+            if slides_ids and len(slides_ids) > slide_index:
+                return slides_ids[slide_index].get("id")
+        raise IndexError(f"Slide index {slide_index} is out of range.")
 
     @property
-    def data(self) -> SlideData:
-        if not self._data:
-            self._data = SlideData(
-                slide_index=self._index,
-                slide_id=self._id,
-                comments_file_path=self.get_slide_comments(),
-                slide_creation_id=self.get_slide_creation_date(),
-                shapes=self.get_slide_shapes(),
-            )
+    def data(self):
         return self._data

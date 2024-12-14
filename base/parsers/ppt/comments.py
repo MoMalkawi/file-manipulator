@@ -4,7 +4,7 @@ from uuid import uuid4
 from base.models.parsers import PPTCommentData
 from base.parsers.file import ArchiveFile, ParsedArchiveFile
 from base.utils import generate_guid
-from app.schemas.base import BaseModel
+from base.models import BaseModel
 
 
 class PPTSlideComments(ParsedArchiveFile):

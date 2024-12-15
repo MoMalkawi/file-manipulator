@@ -35,7 +35,7 @@ class PresentationEditor:
 
     def _load_author(self, custom_author: AuthorData | None = None) -> AuthorData:
         author_data = custom_author or AuthorData(
-            id="A123B456-C789-0D12-E345-F67890123456",
+            id="9cef6d51-21ec-46f0-9cd9-55cb7fb4ec41",
             name="Document Checker",
             initials="DC",
             user_id="S::documentchecker@noemail.com::12345678-90ab-cdef-1234-567890abcdef",

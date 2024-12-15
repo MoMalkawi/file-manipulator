@@ -1,3 +1,4 @@
+import logging
 import xml.etree.ElementTree as et
 
 from base.models.parsers import AuthorData
@@ -20,6 +21,7 @@ class PPTAuthor(ParsedArchiveFile):
 
     def parse(self):
         if not self._file:
+            logging.info("PPTAuthor: Couldn't parse Author file, as it doesn't exist.")
             return None
 
         authors_root = et.fromstring(self._file.data)
@@ -50,7 +52,6 @@ class PPTAuthor(ParsedArchiveFile):
         if not self._file:
             self.create(archiver, data)
             return
-
         authors_root = et.fromstring(self._file.data)
         authors_root.append(self._create_author_xml(data))
         self._file = ArchiveFile(
@@ -79,6 +80,13 @@ class PPTAuthor(ParsedArchiveFile):
         xml_content = xml_bytes.decode("utf-8")
         self._file = ArchiveFile(file_name="ppt/authors.xml", data=xml_content)
         archiver.upsert(self._file.name, lambda _: self._file)
+
+    # @classmethod
+    # def _add_presentation_rel(cls, archiver):
+    #     presentation_rel = archiver.get_file("ppt/_rels/presentation.xml.rels")
+    #     xml_content = presentation_rel.data
+    #     presentation_rel_xml = et.fromstring(xml_content)
+    #     print(presentation_rel_xml.findall("Relationship"))
 
     @classmethod
     def _add_presentation_rel(cls, archiver):
@@ -117,6 +125,9 @@ class PPTAuthor(ParsedArchiveFile):
     @classmethod
     def _add_author_content_type(cls, archiver):
         content_types_file = archiver.get_file("[Content_Types].xml")
+        if not content_types_file or not content_types_file.data:
+            # TODO: handle this later on.
+            return
         xml_content = content_types_file.data
         root = et.fromstring(xml_content)
         ns = "http://schemas.openxmlformats.org/package/2006/content-types"

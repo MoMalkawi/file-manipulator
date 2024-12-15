@@ -69,6 +69,7 @@ class PPTSlideComments(ParsedArchiveFile):
         relationship_id = 1
         if relationships:
             relationship_id = max([int(rel.get("Id")[3:]) for rel in relationships]) + 1
+        print("Relationship id: ", relationship_id)
         comments_file = self._file.name[self._file.name.rindex("/") + 1 :]
         new_slide_rel = slide_rel.data.replace(
             "</Relationships>",
@@ -113,7 +114,7 @@ class PPTSlideComments(ParsedArchiveFile):
         <pc:docMk
             xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command"/>
             <pc:sldMk
-                xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command" cId="{data.shape_data.slide_data.slide_creation_id}" sldId="{data.shape_data.slide_data.slide_id}"/>
+                xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command" cId="{{{data.shape_data.slide_data.slide_creation_id}}}" sldId="{data.shape_data.slide_data.slide_id}"/>
                 <ac:spMk id="{data.shape_data.id}" creationId="{{{data.shape_data.creation_id}}}"/>
                 <ac:txMk cp="{data.highlighted_text_start_index}" len="{data.highlighted_text_length}">
                     <ac:context len="{data.shape_data.text_area_length}" hash="{data.shape_data.text_area_content_hash}"/>

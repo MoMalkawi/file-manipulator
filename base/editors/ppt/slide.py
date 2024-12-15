@@ -50,7 +50,7 @@ class SlideEditor:
         """
         text_to_highlight = text_to_highlight.lower()
         shapes: list[ShapeEditor] = self.get_shapes()
-        all_text = "".join([shape.data.text.lower() for shape in shapes])
+        all_text = "".join([shape.data.text.lower() for shape in shapes if shape.data])
         all_text = all_text.replace("\n", " ")
         start_idx = all_text.find(text_to_highlight)
         if start_idx == -1:
@@ -167,7 +167,7 @@ class SlideEditor:
                 )
                 if slide_root:
                     return next((root.get("val") for root in slide_root), None)
-        return None
+        return "00000000-0000-0000-0000-000000000000"
 
     def _extract_slide_id(self, slide_index: int) -> str:
         presentation_file = self._archiver.get_file("ppt/presentation.xml")

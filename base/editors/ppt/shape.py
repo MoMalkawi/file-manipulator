@@ -181,6 +181,12 @@ class ShapeEditor:
                                 creation_id=shape_creation_id_comp.get("id")[1:-1],
                                 name=shape_id.get("name")
                             )
+                else:
+                    return dict(
+                        id=self._id,
+                        creation_id="00000000-0000-0000-0000-000000000000",
+                        name=shape_id.get("name")
+                    )
         return None
 
     def _extract_element(self) -> Element | None:

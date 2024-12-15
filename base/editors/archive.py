@@ -1,6 +1,7 @@
 from io import BytesIO
 from zipfile import ZipFile
 
+from base.models.file import FileState
 from base.parsers.file import ArchiveFile
 
 
@@ -28,6 +29,7 @@ class SelectiveArchiveEditor:
         self._zip_file: ZipFile = self._load(file)
         self._closed: bool = False
         self._modifications: dict[str, str] = {}  # file_path: new_content
+        self._files_states: dict[str, FileState] = {}
 
     @classmethod
     def _load(cls, file: str | bytes) -> ZipFile:
@@ -45,12 +47,16 @@ class SelectiveArchiveEditor:
             name
             for name in self._zip_file.namelist()
             if name.startswith(dir_path) and "/" not in name[len(dir_path) :]
+               and self._files_states.get(name) != FileState.DELETED
         ]
 
     def get_files(self, *file_names: str) -> list[ArchiveFile]:
         results = []
         for file_name in file_names:
             try:
+                if self._files_states[file_name] == FileState.DELETED:
+                    results.append(None)
+                    continue
                 if file_name in self._modifications:
                     results.append(
                         ArchiveFile(
@@ -67,6 +73,8 @@ class SelectiveArchiveEditor:
 
     def get_file(self, file_name: str) -> ArchiveFile | None:
         try:
+            if self._files_states.get(file_name) == FileState.DELETED:
+                return None
             if file_name in self._modifications:
                 return ArchiveFile(
                     file_name=file_name, data=self._modifications[file_name]
@@ -75,6 +83,12 @@ class SelectiveArchiveEditor:
                 return ArchiveFile(file_name=file_name, data=file.read().decode())
         except KeyError:
             return None
+
+    def delete(self, *file_names: str):
+        for file_name in file_names:
+            self._files_states[file_name] = FileState.DELETED
+            self._modifications.pop(file_name, None)
+        return self
 
     def upsert(self, archive_file_path: str, file_modifier: callable):
         """modify or add a file within the archive."""
@@ -91,6 +105,7 @@ class SelectiveArchiveEditor:
         # tree = et.ElementTree(et.fromstring(new_content.data))
         # formatted_xml = et.tostring(tree.getroot(), encoding="unicode")
         self._modifications[archive_file_path] = new_content.data
+        self._files_states[archive_file_path] = FileState.MODIFIED
         return self
 
     def upsert_many(self, archive_files_paths: list[str], files_modifier):
@@ -122,6 +137,7 @@ class SelectiveArchiveEditor:
 
         for content in new_content:
             self._modifications[content.name] = content.data
+            self._files_states[content.name] = FileState.MODIFIED
 
         return self
 
@@ -130,9 +146,13 @@ class SelectiveArchiveEditor:
         buffer = BytesIO()
         with ZipFile(buffer, "w") as export_zip:
             for path, data in self._modifications.items():
+                if self._files_states.get(path) == FileState.DELETED:
+                    continue
                 export_zip.writestr(path, data)
 
             for name in self._zip_file.namelist():
+                if self._files_states.get(name) == FileState.DELETED:
+                    continue
                 if name not in self._modifications:
                     with self._zip_file.open(name) as file:
                         export_zip.writestr(name, file.read())

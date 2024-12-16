@@ -1,10 +1,10 @@
 from lxml import etree
 
+from base.components.doc.comments import DocPageComments
+from base.components.doc.page import DocPageHighlighter
+from base.data.components.doc import DocCommentData
 from base.editors.archive import SelectiveArchiveEditor
-from base.models.parsers import DocCommentData
-from base.namespaces.docx import NSMAP
-from base.parsers.doc.comments import DocPageComments
-from base.parsers.doc.page import DocPageHighlighter
+from base.data.namespaces.docx import NSMAP
 
 
 class DocumentEditor:

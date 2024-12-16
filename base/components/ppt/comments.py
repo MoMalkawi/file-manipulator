@@ -1,10 +1,10 @@
 import xml.etree.ElementTree as et
 from uuid import uuid4
 
-from base.models.parsers import PPTCommentData
-from base.parsers.file import ArchiveFile, ParsedArchiveFile
+from base.components.file import ParsedArchiveFile, ArchiveFile
+from base.data.components.ppt import PPTCommentData
 from base.utils import generate_guid
-from base.models import BaseModel
+from base.data import BaseModel
 
 
 class PPTSlideComments(ParsedArchiveFile):

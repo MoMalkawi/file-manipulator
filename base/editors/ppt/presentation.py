@@ -1,6 +1,6 @@
+from base.components.ppt.author import PPTAuthor
+from base.data.components.ppt import AuthorData, PresentationData
 from base.editors.archive import SelectiveArchiveEditor
-from base.models.parsers import PresentationData
-from base.parsers.ppt.author import AuthorData, PPTAuthor
 from base.editors.ppt.slide import SlideEditor
 
 

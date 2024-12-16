@@ -1,8 +1,9 @@
 from lxml import etree
+
+from base.components.file import ParsedArchiveFile, ArchiveFile
+from base.data.components.doc import DocCommentData
 from base.editors.archive import SelectiveArchiveEditor
-from base.models.parsers import DocCommentData
-from base.namespaces.docx import DocUtils
-from base.parsers.file import ArchiveFile, ParsedArchiveFile
+from base.data.namespaces.docx import DocUtils
 
 
 class DocPageComments(ParsedArchiveFile):

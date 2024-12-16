@@ -1,8 +1,8 @@
 from io import BytesIO
 from zipfile import ZipFile
 
-from base.models.file import FileState
-from base.parsers.file import ArchiveFile
+from base.components.file import ArchiveFile
+from base.data.misc.file import FileState
 
 
 class SelectiveArchiveEditor:

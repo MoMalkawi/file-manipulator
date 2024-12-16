@@ -1,8 +1,8 @@
 import logging
 import xml.etree.ElementTree as et
 
-from base.models.parsers import AuthorData
-from base.parsers.file import ArchiveFile, ParsedArchiveFile
+from base.components.file import ParsedArchiveFile, ArchiveFile
+from base.data.components.ppt import AuthorData
 
 
 class PPTAuthor(ParsedArchiveFile):

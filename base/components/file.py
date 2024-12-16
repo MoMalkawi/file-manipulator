@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from base.models import BaseModel
-from base.models.parsers import XMLFileData
+from base.data import BaseModel
+from base.data.components import XMLFileData
 
 
 class ArchiveFile:

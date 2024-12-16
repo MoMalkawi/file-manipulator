@@ -3,9 +3,9 @@ import xml.etree.ElementTree as et
 
 from xml.etree.ElementTree import Element
 
+from base.components.ppt.comments import PPTSlideComments
+from base.data.components.ppt import SlideData, ShapeData, PPTCommentData
 from base.editors.archive import SelectiveArchiveEditor
-from base.models.parsers import SlideData, ShapeData, PPTCommentData
-from base.parsers.ppt.comments import PPTSlideComments
 from base.utils import validate_element, ppt_context_hash, get_highlighted_text_coords
 
 

@@ -1,7 +1,8 @@
 from lxml import etree
-from base.models.parsers import DocCommentData
-from base.namespaces.docx import NSMAP
-from base.parsers.file import ArchiveFile, ParsedArchiveFile
+
+from base.components.file import ArchiveFile, ParsedArchiveFile
+from base.data.components.doc import DocCommentData
+from base.data.namespaces.docx import NSMAP
 
 
 class DocPageHighlighter(ParsedArchiveFile):

@@ -2,6 +2,7 @@
 
 Document Manipulator is a powerful tool designed for high-speed modification of the XML and binary code within Word documents, PowerPoint presentations, PDF files, and more. It enables seamless addition of comments, sections, text, shapes, images, and other elements, offering unparalleled efficiency and flexibility for document customization and automation.
 
+---
 
 ### Example Usages
 
@@ -25,6 +26,8 @@ with DocumentEditor(FILE_PATH/BYTES) as editor:
     new_document_bytes = editor.export
 ```
 
+---
+
 ### Installation
 
 1) Install Poetry
@@ -43,6 +46,7 @@ with DocumentEditor(FILE_PATH/BYTES) as editor:
 
 `with PresentationEditor(...) as editor: ...`
 
+---
 
 ### Coding Standards & Style
 
@@ -109,6 +113,7 @@ class RoomTableData(XMLFileData):
 #### Example Structure Diagram
 ![Coding Style](res/docs/coding_style.png)
 
+---
 
 ### Projected Operational Flow
 

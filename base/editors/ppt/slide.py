@@ -165,7 +165,7 @@ class SlideEditor:
                 )
                 if slide_root:
                     return next((root.get("val") for root in slide_root), None)
-        return "00000000-0000-0000-0000-000000000000"
+        return None
 
     def _extract_slide_id(self, slide_index: int) -> str:
         presentation_file = self._archiver.get_file("ppt/presentation.xml")

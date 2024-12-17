@@ -20,7 +20,7 @@ class PresentationData(XMLFileData):
 class SlideData(XMLFileData):
     slide_index: int
     slide_id: str
-    slide_creation_id: str
+    slide_creation_id: str | None
     comments_file_path: str | None
     presentation_data: PresentationData
 

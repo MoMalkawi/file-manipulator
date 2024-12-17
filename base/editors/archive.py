@@ -102,8 +102,6 @@ class SelectiveArchiveEditor:
             ArchiveFile(file_name=archive_file_path, data=current_content)
         )
 
-        # tree = et.ElementTree(et.fromstring(new_content.data))
-        # formatted_xml = et.tostring(tree.getroot(), encoding="unicode")
         self._modifications[archive_file_path] = new_content.data
         self._files_states[archive_file_path] = FileState.MODIFIED
         return self

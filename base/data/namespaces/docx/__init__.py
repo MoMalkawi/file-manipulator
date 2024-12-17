@@ -1,5 +1,6 @@
 from lxml import etree
 
+# @Anzor: let's try to use the new ../docx.py, I kept this so that you transfer what you want
 NSMAP = {
     'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
     'wpc': 'http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas',

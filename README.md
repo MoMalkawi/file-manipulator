@@ -63,8 +63,8 @@ The project is organized into four distinct sections, each with a specific purpo
 class RoomEditor(AbstractArchiveEditor):
     """Editors should not contain ANY XML code; they are purely facades."""
 
-    def __init__(self, ...):
-        self._archive: SelectiveArchiveEditor = SelectiveArchiveEditor()
+    def __init__(self, room_archive_file: str | bytes):
+        super().__init__(room_archive_file)
     
     def add_table(table_kwargs...): 
         """
@@ -75,12 +75,6 @@ class RoomEditor(AbstractArchiveEditor):
         table_component.inject()  # Use inject to insert XML into a pre-existing XML file.
         # If the component is not injectable, use .create()
         # If both inject and create are possible, inject should fallback to create if necessary.
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):  # noqa
-        self._archive.close()
     
 
 class RoomTable(ParsedArchiveFile):

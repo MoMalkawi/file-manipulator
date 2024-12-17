@@ -139,7 +139,7 @@ class ShapeEditor:
                             text_box = run.find(
                                 ".//{http://schemas.openxmlformats.org/drawingml/2006/main}t"
                             )
-                            if validate_element(text_box):
+                            if validate_element(text_box) and isinstance(text_box.text, str):
                                 runs_text += text_box.text
                         text_length += len(runs_text) + 1
                         texts.append(runs_text + "\r")

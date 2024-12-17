@@ -2,12 +2,13 @@ import logging
 import xml.etree.ElementTree as et
 
 from base.data.components.ppt import PresentationData, SlideData
+from base.editors import AbstractEditor
 from base.editors.archive import SelectiveArchiveEditor
 from base.editors.ppt.shape import ShapeEditor
 from base.tools.xmls import validate_element
 
 
-class SlideEditor:
+class SlideEditor(AbstractEditor):
     """
     SlideEditor
 

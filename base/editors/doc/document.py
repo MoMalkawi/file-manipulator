@@ -3,14 +3,14 @@ from lxml import etree
 from base.components.doc.comments import DocPageComments
 from base.components.doc.page import DocPageHighlighter
 from base.data.components.doc import DocCommentData
-from base.editors.archive import SelectiveArchiveEditor
+from base.editors.archive import AbstractArchiveEditor
 from base.data.namespaces.docx import NSMAP
 
 
-class DocumentEditor:
+class DocumentEditor(AbstractArchiveEditor):
 
     def __init__(self, doc: str | bytes):
-        self._archive: SelectiveArchiveEditor = SelectiveArchiveEditor(doc)
+        super().__init__(doc)
 
     def get_page_count(self):
         # TODO: Estimate page number based on number of paragraphs as well.
@@ -64,9 +64,3 @@ class DocumentEditor:
 
     def export(self, path: str | None = None) -> bytes:
         return self._archive.export(path)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):  # noqa
-        self._archive.close()

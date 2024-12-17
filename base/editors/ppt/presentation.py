@@ -1,10 +1,10 @@
 from base.components.ppt.author import PPTAuthor
 from base.data.components.ppt import AuthorData, PresentationData
-from base.editors.archive import SelectiveArchiveEditor
+from base.editors.archive import AbstractArchiveEditor
 from base.editors.ppt.slide import SlideEditor
 
 
-class PresentationEditor:
+class PresentationEditor(AbstractArchiveEditor):
     """
     PresentationEditor
 
@@ -18,7 +18,7 @@ class PresentationEditor:
         """
         :param presentation: The presentation file path or bytes to edit.
         """
-        self._archive: SelectiveArchiveEditor = SelectiveArchiveEditor(presentation)
+        super().__init__(presentation)
         self._data: PresentationData = self._load_data(custom_author=custom_author)
 
     def _load_data(self, custom_author: AuthorData | None = None) -> PresentationData:
@@ -53,9 +53,3 @@ class PresentationEditor:
     @property
     def data(self):
         return self._data
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):  # noqa
-        self._archive.close()

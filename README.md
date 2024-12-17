@@ -60,7 +60,7 @@ The project is organized into four distinct sections, each with a specific purpo
 #### Example Structure
 
 ```python
-class RoomEditor:
+class RoomEditor(AbstractArchiveEditor):
     """Editors should not contain ANY XML code; they are purely facades."""
 
     def __init__(self, ...):

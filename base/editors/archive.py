@@ -3,6 +3,7 @@ from zipfile import ZipFile
 
 from base.components.file import ArchiveFile
 from base.data.misc.file import FileState
+from base.editors import AbstractEditor
 
 
 class SelectiveArchiveEditor:
@@ -172,3 +173,16 @@ class SelectiveArchiveEditor:
 
     def __exit__(self, type, value, traceback):  # noqa
         self.close()
+
+
+class AbstractArchiveEditor(AbstractEditor):
+    """This wraps any entry-point editor that processes archive files."""
+
+    def __init__(self, file: str | bytes):
+        self._archive: SelectiveArchiveEditor = SelectiveArchiveEditor(file)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):  # noqa
+        self._archive.close()

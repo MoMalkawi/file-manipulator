@@ -6,7 +6,9 @@ from xml.etree.ElementTree import Element
 from base.components.ppt.comments import PPTSlideComments
 from base.data.components.ppt import SlideData, ShapeData, PPTCommentData
 from base.editors.archive import SelectiveArchiveEditor
-from base.utils import validate_element, ppt_context_hash, get_highlighted_text_coords
+from base.tools.xmls import validate_element
+from base.tools.strings import get_highlighted_text_coords
+from base.tools.ppt import ppt_context_hash
 
 
 class ShapeEditor:

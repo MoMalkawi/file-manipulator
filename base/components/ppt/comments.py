@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from base.components.file import ParsedArchiveFile, ArchiveFile
 from base.data.components.ppt import PPTCommentData
-from base.utils import generate_guid
+from base.tools.crypt import generate_guid
 from base.data import BaseModel
 
 

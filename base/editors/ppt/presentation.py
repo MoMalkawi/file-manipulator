@@ -34,13 +34,7 @@ class PresentationEditor:
         return len(self._archive.get_filenames_in_dir("ppt/slides"))
 
     def _load_author(self, custom_author: AuthorData | None = None) -> AuthorData:
-        author_data = custom_author or AuthorData(
-            id="9cef6d51-21ec-46f0-9cd9-55cb7fb4ec41",
-            name="Document Checker",
-            initials="DC",
-            user_id="S::documentchecker@noemail.com::12345678-90ab-cdef-1234-567890abcdef",
-            provider_id="AD",
-        )
+        author_data = custom_author or AuthorData()
 
         author = PPTAuthor(
             author_data.id,

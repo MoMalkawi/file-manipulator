@@ -1,3 +1,4 @@
+from xml.etree import ElementTree as et
 from lxml.etree import Element, SubElement
 
 from base.data.namespaces import AbstractNameSpaces
@@ -19,3 +20,7 @@ def create_element(
     element.attrib.update(attributes)
     return element
 
+
+def validate_element(element: any):
+    # The reason for this function is that Element seems to get confused with None as it's a function.
+    return isinstance(element, et.Element)

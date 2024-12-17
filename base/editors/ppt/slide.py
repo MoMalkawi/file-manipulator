@@ -4,9 +4,7 @@ import xml.etree.ElementTree as et
 from base.data.components.ppt import PresentationData, SlideData
 from base.editors.archive import SelectiveArchiveEditor
 from base.editors.ppt.shape import ShapeEditor
-from base.utils import (
-    validate_element,
-)
+from base.tools.xmls import validate_element
 
 
 class SlideEditor:

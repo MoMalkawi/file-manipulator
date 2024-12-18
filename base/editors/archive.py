@@ -1,7 +1,9 @@
+from abc import abstractmethod, ABC
 from io import BytesIO
 from zipfile import ZipFile
 
 from base.components.file import ArchiveFile
+from base.data.components import XMLFileData
 from base.data.misc.file import FileState
 from base.editors import AbstractEditor
 
@@ -166,6 +168,7 @@ class SelectiveArchiveEditor:
         if not self._closed:
             self._zip_file.close()
             self._modifications.clear()
+            self._files_states.clear()
             self._closed = True
 
     def __enter__(self):
@@ -175,10 +178,11 @@ class SelectiveArchiveEditor:
         self.close()
 
 
-class AbstractArchiveEditor(AbstractEditor):
+class AbstractArchiveEditor(AbstractEditor, ABC):
     """This wraps any entry-point editor that processes archive files."""
 
-    def __init__(self, file: str | bytes):
+    def __init__(self, file: str | bytes, **kwargs):
+        super().__init__()
         self._archive: SelectiveArchiveEditor = SelectiveArchiveEditor(file)
 
     def __enter__(self):
@@ -186,3 +190,6 @@ class AbstractArchiveEditor(AbstractEditor):
 
     def __exit__(self, type, value, traceback):  # noqa
         self._archive.close()
+
+    def export(self, path: str | None = None) -> bytes:
+        return self._archive.export(path)

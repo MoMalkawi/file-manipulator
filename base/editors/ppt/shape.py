@@ -5,10 +5,11 @@ from xml.etree.ElementTree import Element
 
 from base.components.ppt.comments import PPTSlideComments
 from base.data.components.ppt import SlideData, ShapeData, PPTCommentData
+from base.data.exceptions.ppt.shapes import CommentTargetTextNotFound
 from base.editors import AbstractEditor
 from base.editors.archive import SelectiveArchiveEditor
 from base.tools.xmls import validate_element
-from base.tools.strings import get_highlighted_text_coords
+from base.tools.strings import locate_text_in_text
 from base.tools.ppt import ppt_context_hash
 
 
@@ -25,6 +26,7 @@ class ShapeEditor(AbstractEditor):
     def __init__(
         self, identifier: str, slide_data: SlideData, archiver: SelectiveArchiveEditor
     ):
+        super().__init__()
         self._id = identifier
         self._slide_data = slide_data
         self._archiver = archiver
@@ -45,6 +47,9 @@ class ShapeEditor(AbstractEditor):
             locale=locale,
         )
 
+        if not payload:
+            raise CommentTargetTextNotFound(text_to_highlight, str(self._data.text))
+
         self._add_comment(payload)
         return self
 
@@ -57,6 +62,8 @@ class ShapeEditor(AbstractEditor):
     ):
         """
         Adds a comment to the shape within given location constraints.
+        :param locale: Locale of the comment
+        :param text: The comment's text
         :param start_index: start index of the text to highlight within the shape.
         :param length: length of the text to highlight within the shape.
         """
@@ -72,12 +79,19 @@ class ShapeEditor(AbstractEditor):
 
     def _construct_comment_payload(self, **kwargs):
         text_to_highlight = kwargs.get("text_to_highlight")
-        start_index, length = get_highlighted_text_coords(text_to_highlight, self._data.text)
+        if text_to_highlight:
+            start_index, length = locate_text_in_text(text_to_highlight, self._data.text)
+        else:
+            start_index, length = kwargs.get("start_index"), kwargs.get("length")
+
+        if start_index == -1:
+            return None
+
         return PPTCommentData(
             author_id=self._slide_data.presentation_data.author.id,
             shape_data=self._data,
-            highlighted_text_start_index=kwargs.get("start_index") or start_index,
-            highlighted_text_length=kwargs.get("length") or length,
+            highlighted_text_start_index=start_index,
+            highlighted_text_length=length,
             text=kwargs.get("text"),
             locale=kwargs.get("locale"),
         )
@@ -94,32 +108,6 @@ class ShapeEditor(AbstractEditor):
             self._archiver, comment
         )
         self._data.slide_data.comments_file_path = results_comment_file_name[results_comment_file_name.rindex("/") + 1:]
-
-    def _load_data(self) -> ShapeData | None:
-        shape_element = self._extract_element()
-        if not validate_element(shape_element):
-            logging.error("ShapeEditor: Could not find shape.")
-            return None
-
-        shape_metadata = self._extract_metadata(shape_element)
-        if not shape_metadata:
-            logging.error("ShapeEditor: Could not extract metadata.")
-            return None
-
-        shape_content = self._extract_content(shape_element)
-        if not shape_content:
-            logging.error("ShapeEditor: Could not extract content.")
-            return None
-
-        return ShapeData(
-            id=shape_metadata.get("id"),
-            creation_id=shape_metadata.get("creation_id"),
-            name=shape_metadata.get("name"),
-            text=shape_content.get("text"),
-            text_area_length=shape_content.get("text_area_length"),
-            text_area_content_hash=shape_content.get("text_area_content_hash"),
-            slide_data=self._slide_data,
-        )
 
     def _extract_content(self, shape_element: Element) -> dict | None:  # noqa
         texts = []
@@ -226,6 +214,28 @@ class ShapeEditor(AbstractEditor):
                                 return shape
         return None
 
-    @property
-    def data(self) -> ShapeData:
-        return self._data
+    def _load_data(self, **kwargs) -> ShapeData | None:
+        shape_element = self._extract_element()
+        if not validate_element(shape_element):
+            logging.error("ShapeEditor: Could not find shape.")
+            return None
+
+        shape_metadata = self._extract_metadata(shape_element)
+        if not shape_metadata:
+            logging.error("ShapeEditor: Could not extract metadata.")
+            return None
+
+        shape_content = self._extract_content(shape_element)
+        if not shape_content:
+            logging.error("ShapeEditor: Could not extract content.")
+            return None
+
+        return ShapeData(
+            id=shape_metadata.get("id"),
+            creation_id=shape_metadata.get("creation_id"),
+            name=shape_metadata.get("name"),
+            text=shape_content.get("text"),
+            text_area_length=shape_content.get("text_area_length"),
+            text_area_content_hash=shape_content.get("text_area_content_hash"),
+            slide_data=self._slide_data,
+        )

@@ -1,10 +1,10 @@
-import logging
 import xml.etree.ElementTree as et
 
 from base.data.components.ppt import PresentationData, SlideData
 from base.editors import AbstractEditor
 from base.editors.archive import SelectiveArchiveEditor
 from base.editors.ppt.shape import ShapeEditor
+from base.tools.strings import locate_text_in_texts
 from base.tools.xmls import validate_element
 
 
@@ -21,25 +21,18 @@ class SlideEditor(AbstractEditor):
     def __init__(
         self, index: int, presentation_data: PresentationData, archiver: SelectiveArchiveEditor
     ):
+        super().__init__()
         self._archiver = archiver
         self._index = index
         self._presentation_data: PresentationData = presentation_data
         self._data: SlideData = self._load_data()
-
-    def _load_data(self) -> SlideData:
-        return SlideData(
-            slide_index=self._index,
-            slide_id=self._extract_slide_id(self._index),
-            comments_file_path=self._extract_comment_file_name(),
-            slide_creation_id=self._extract_slide_creation_id(),
-            presentation_data=self._presentation_data,
-        )
 
     def search_and_comment(
         self,
         text: str,
         text_to_highlight: str,
         locale: str = "en-US",
+        space_delimit: bool = False
     ) -> "SlideEditor":
         """
         Looks for the text_to_highlight within the shapes' text and prints the details
@@ -47,51 +40,11 @@ class SlideEditor(AbstractEditor):
         """
         text_to_highlight = text_to_highlight.lower()
         shapes: list[ShapeEditor] = self.get_shapes()
-        all_text = "".join([shape.data.text.lower() for shape in shapes if shape.data])
-        all_text = all_text.replace("\n", " ")
-        start_idx = all_text.find(text_to_highlight)
-        if start_idx == -1:
-            logging.error(f"SlideEditor: '{text_to_highlight}' not found in any shape.")
-            return self
-
-        end_idx = start_idx + len(text_to_highlight)
-
-        cumulative_length = 0
-        remaining_start = start_idx
-        remaining_end = end_idx
-
-        results = []
-
-        for i, shape in enumerate(shapes):
-            shape_text = shape.data.text
-            shape_length = len(shape_text)
-
-            shape_global_start = cumulative_length
-            shape_global_end = cumulative_length + shape_length
-
-            if shape_global_end > remaining_start and shape_global_start < remaining_end:
-                local_start = max(0, remaining_start - shape_global_start)
-                local_end = min(shape_length, remaining_end - shape_global_start)
-
-                highlighted_substring = shape_text[local_start:local_end]
-
-                results.append({
-                    "shape_index": i,
-                    "shape_text": shape_text,
-                    "highlighted_substring": highlighted_substring,
-                    "local_start": local_start,
-                    "length": local_end - local_start
-                })
-
-            cumulative_length += shape_length
-
-            if cumulative_length >= end_idx:
-                break
-
-        for r in results:
-            curr_shape: ShapeEditor = shapes[r["shape_index"]]
-            curr_shape.comment(text, r["local_start"], r["length"], locale)
-
+        shapes_texts = [shape.data.text for shape in shapes if shape.data]
+        locations = locate_text_in_texts(text_to_highlight, shapes_texts, space_delimit=space_delimit)
+        for location in locations:
+            curr_shape: ShapeEditor = shapes[location["index"]]
+            curr_shape.comment(text, location["local_start"], location["length"], locale)
         return self
 
     def get_shape(self, shape_id: str) -> ShapeEditor:
@@ -180,6 +133,11 @@ class SlideEditor(AbstractEditor):
                 return slides_ids[slide_index].get("id")
         raise IndexError(f"Slide index {slide_index} is out of range.")
 
-    @property
-    def data(self):
-        return self._data
+    def _load_data(self, **kwargs) -> SlideData:
+        return SlideData(
+            slide_index=self._index,
+            slide_id=self._extract_slide_id(self._index),
+            comments_file_path=self._extract_comment_file_name(),
+            slide_creation_id=self._extract_slide_creation_id(),
+            presentation_data=self._presentation_data,
+        )

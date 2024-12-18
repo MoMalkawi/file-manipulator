@@ -62,5 +62,5 @@ class DocumentEditor(AbstractArchiveEditor):
     def archiver(self):
         return self._archive
 
-    def export(self, path: str | None = None) -> bytes:
-        return self._archive.export(path)
+    def _load_data(self, **kwargs):
+        """TODO: Store the DocumentEditor Data"""

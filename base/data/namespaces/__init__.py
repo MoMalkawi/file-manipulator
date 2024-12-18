@@ -1,4 +1,4 @@
-from enum import ReprEnum
+from enum import ReprEnum, Enum
 
 
 class NameSpace:
@@ -8,7 +8,7 @@ class NameSpace:
         self.url = url
 
 
-class AbstractNameSpaces(NameSpace, ReprEnum):
+class AbstractNameSpaces(Enum):
 
     @property
     def url(self):

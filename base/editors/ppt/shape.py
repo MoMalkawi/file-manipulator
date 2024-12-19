@@ -19,7 +19,7 @@ class ShapeEditor(AbstractEditor):
     ShapeEditor
 
     Author: Mohammad Malkawi
-    Email: mohammad.m.malkawi@pwc.com
+    Email: mohammad.o.malkawi@gmail.com
     --------------------------------------------
     Edits a specific shape within a slide.
     """

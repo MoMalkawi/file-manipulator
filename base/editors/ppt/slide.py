@@ -14,7 +14,7 @@ class SlideEditor(AbstractEditor):
     SlideEditor
 
     Author: Mohammad Malkawi
-    Email: mohammad.m.malkawi@pwc.com
+    Email: mohammad.o.malkawi@gmail.com
     --------------------------------------------
     Edits a specific slide within a presentation.
     """

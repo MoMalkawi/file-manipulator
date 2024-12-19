@@ -12,7 +12,7 @@ class PPTSlideComments(ParsedArchiveFile):
     PPTSlideComments
 
     Author: Mohammad Malkawi
-    Email: mohammad.m.malkawi@pwc.com
+    Email: mohammad.o.malkawi@gmail.com
     --------------------------------------------
     Parses/Injects/Creates Slide Comments.
     """

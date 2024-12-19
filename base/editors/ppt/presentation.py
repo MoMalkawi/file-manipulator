@@ -10,7 +10,7 @@ class PresentationEditor(AbstractArchiveEditor):
     PresentationEditor
 
     Author: Mohammad Malkawi
-    Email: mohammad.m.malkawi@pwc.com
+    Email: mohammad.o.malkawi@gmail.com
     --------------------------------------------
     Uses the ArchiveEditor to edit a PowerPoint Presentation file.
     """

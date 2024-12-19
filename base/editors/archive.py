@@ -13,7 +13,7 @@ class SelectiveArchiveEditor:
     SelectiveArchiveEditor
 
     Author: Mohammad Malkawi
-    Email: mohammad.m.malkawi@pwc.com
+    Email: mohammad.o.malkawi@gmail.com
     --------------------------------------------
     Loads files from an archive, Allows for Modification, then saves the archive as bytes for export.
     Also allows for addition of files.

@@ -128,7 +128,7 @@ class PPTSlideComments(ParsedArchiveFile):
                 <a:lstStyle/>
                 <a:p>
                     <a:r>
-                        <a:rPr lang="{data.locale}"/>
+                        <a:rPr lang="{data.locale.value}"/>
                         <a:t>{data.text}</a:t>
                     </a:r>
                 </a:p>

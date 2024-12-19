@@ -6,6 +6,7 @@ from xml.etree.ElementTree import Element
 from base.components.ppt.comments import PPTSlideComments
 from base.data.components.ppt import SlideData, ShapeData, PPTCommentData
 from base.data.exceptions.ppt.shapes import CommentTargetTextNotFound
+from base.data.misc.language import Locale
 from base.editors import AbstractEditor
 from base.editors.archive import SelectiveArchiveEditor
 from base.tools.xmls import validate_element
@@ -36,7 +37,7 @@ class ShapeEditor(AbstractEditor):
         self,
         text: str,
         text_to_highlight: str,
-        locale: str = "en-US",
+        locale: Locale = Locale.EN_US,
     ):
         """
         Looks for the text to highlight within the shape and adds a comment to it.
@@ -58,7 +59,7 @@ class ShapeEditor(AbstractEditor):
         text: str,
         start_index: int,  # start index of the text to highlight
         length: int,  # length of the text to highlight
-        locale: str = "en-US",
+        locale: Locale = Locale.EN_US,
     ):
         """
         Adds a comment to the shape within given location constraints.
@@ -93,7 +94,7 @@ class ShapeEditor(AbstractEditor):
             highlighted_text_start_index=start_index,
             highlighted_text_length=length,
             text=kwargs.get("text"),
-            locale=kwargs.get("locale"),
+            locale=kwargs.get("locale", Locale.EN_US),
         )
 
     def _add_comment(self, comment: PPTCommentData):

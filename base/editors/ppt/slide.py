@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as et
 
 from base.data.components.ppt import PresentationData, SlideData
+from base.data.misc.language import Locale
 from base.editors import AbstractEditor
 from base.editors.archive import SelectiveArchiveEditor
 from base.editors.ppt.shape import ShapeEditor
@@ -31,7 +32,7 @@ class SlideEditor(AbstractEditor):
         self,
         text: str,
         text_to_highlight: str,
-        locale: str = "en-US",
+        locale: Locale = Locale.EN_US,
         space_delimit: bool = False
     ) -> "SlideEditor":
         """

@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from base.data.components import XMLFileData
+from base.data.misc.language import Locale
 from base.tools.strings import generate_string_datetime
 
 
@@ -42,5 +43,5 @@ class PPTCommentData(XMLFileData):
     shape_data: ShapeData
     highlighted_text_start_index: int
     highlighted_text_length: int
-    locale: str = "en-US"
+    locale: Locale = Locale.EN_US
     text: str

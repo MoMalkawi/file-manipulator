@@ -40,10 +40,11 @@ class SlideEditor(AbstractEditor):
         """
         text_to_highlight = text_to_highlight.lower()
         shapes: list[ShapeEditor] = self.get_shapes()
-        shapes_texts = [shape.data.text for shape in shapes if shape.data]
-        locations = locate_text_in_texts(text_to_highlight, shapes_texts, space_delimit=space_delimit)
+        shapes_texts = {shape: shape.data.text for shape in shapes if shape and shape.data and shape.data.text}
+        locations = locate_text_in_texts(text_to_highlight, list(shapes_texts.values()), space_delimit=space_delimit)
+        texts_keys = list(shapes_texts.keys())
         for location in locations:
-            curr_shape: ShapeEditor = shapes[location["index"]]
+            curr_shape: ShapeEditor = texts_keys[location["index"]]
             curr_shape.comment(text, location["local_start"], location["length"], locale)
         return self
 

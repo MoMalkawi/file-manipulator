@@ -1,4 +1,4 @@
-# Document Manipulator
+# Document Manipulator [Discontinued]
 
 Document Manipulator is a powerful tool designed for high-speed modification of the XML and binary code within Word documents, PowerPoint presentations, PDF files, and more. It enables seamless addition of comments, sections, text, shapes, images, and other elements, offering unparalleled efficiency and flexibility for document customization and automation.
 
